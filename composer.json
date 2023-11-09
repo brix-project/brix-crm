@@ -1,0 +1,39 @@
+{
+    "name": "brixlab/crm",
+    "type": "project",
+    "description": "AI Based CRM System",
+    "keywords": ["Brix"],
+    "homepage": "https://infracamp.org",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Matthias Leuffen",
+            "email": "matthes@leuffen.de"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "brixlab/core": "dev-main",
+        "lack/invoice": "dev-main",
+        "lack/openai": "dev-main"
+    },
+
+    "require-dev": {
+        "phore/tester": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Brix\\CRM\\": "src"
+        },
+        "files": [
+            "src/bootstrap.php"
+        ]
+    },
+    "minimum-stability": "dev",
+    "config": {
+        "preferred-install": "source",
+        "allow-plugins": {
+            "php-http/discovery": false
+        }
+    }
+}

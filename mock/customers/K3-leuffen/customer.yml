@@ -1,0 +1,13 @@
+---
+customerId: K3
+email: ""
+address: |-
+  Matthias Leuffen
+  Mathildenstr 9-11
+  45130 Essen
+info: ""
+phone: ""
+customerSlug: leuffen
+assets:
+- leuffen.de
+...

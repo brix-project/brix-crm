@@ -23,16 +23,13 @@ class CustomerManager
 
         $customerDir = $this->customersDir->withRelativePath($customer->customerId . "-" . $customer->customerSlug)->assertDirectory(true);
         $customerFile = $customerDir->withFileName("customer.yml")->set_yaml((array)$customer);
-
-
     }
 
-
     /**
-     * @param string $search
+     * @param string $filter
      * @return T_CRM_Customer[]
      */
-    public function listCustomers(string $search = "*") {
+    public function listCustomers(string $filter = "*") {
         $customers = [];
         foreach ($this->customersDir->assertDirectory()->genWalk() as $dir) {
 
@@ -40,10 +37,23 @@ class CustomerManager
             if ( ! $customerFile->isFile())
                 continue;
 
-            $customers[] = $customerFile->get_yaml(T_CRM_Customer::class);
+            $customer = $customerFile->get_yaml(T_CRM_Customer::class);
+
+            if ($filter !== "*") {
+                $match = false;
+                foreach ($customer as $field) {
+                    if (stripos($field, $filter) !== false) {
+                        $match = true;
+                        break;
+                    }
+                }
+                if (!$match) {
+                    continue;
+                }
+            }
+
+            $customers[] = $customer;
         }
         return $customers;
     }
-
-
 }

@@ -2,12 +2,9 @@
 
 namespace Brix\CRM;
 
-use Brix\CodeDocumenter\Type\T_CrmConfig;
-use Brix\Core\AbstractBrixCommand;
 use Brix\CRM\Business\CustomerManager;
 use Brix\CRM\Helper\AbstractCrmBrixCommand;
 use Brix\CRM\Type\Customer\T_CRM_Customer;
-use Lack\Invoice\Type\T_Customer;
 use Phore\Cli\CLIntputHandler;
 use Phore\Cli\Output\Out;
 

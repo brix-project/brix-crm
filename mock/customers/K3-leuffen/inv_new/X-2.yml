@@ -1,0 +1,10 @@
+---
+invoiceId: X-2
+invoiceDate: "2023-11-09"
+payMethod: Rechnung
+refNo: ~
+notice: ~
+items: []
+net_invoice: true
+attachment: ""
+...

@@ -9,6 +9,6 @@ class T_CrmConfig
 
     public string $customers_dir = "./customers";
 
-
+    public string $template_dir = "./tpl";
 
 }

@@ -1,0 +1,16 @@
+invoiceId: ~
+payMethod: Rechnung
+refNo: ~
+invoiceDate: ~
+dueDate: +7days
+notice: ~
+items:
+-
+    title: Einmalige Einrichtung
+    desc: Zeitraum {{date('d.m.Y')}} - {{date('d.m.Y', strtotime('+1 year'))}}
+    vat: 19
+    unit_price_net: ~
+    quantity: 12
+
+net_invoice: true
+attachment: ""

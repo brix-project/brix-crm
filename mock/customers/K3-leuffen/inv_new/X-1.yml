@@ -1,0 +1,9 @@
+---
+invoiceId: X-1
+payMethod: Rechnung
+refNo: ~
+notice: ~
+items: []
+net_invoice: true
+attachment: ""
+...

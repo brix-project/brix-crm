@@ -11,18 +11,11 @@ use Phore\Cli\Output\Out;
 class Customer extends AbstractCrmBrixCommand
 {
 
-    public CustomerManager $customerManager;
 
     public function __construct()
     {
         parent::__construct();
-        $this->customerManager = new CustomerManager(
-            $this->brixEnv,
-            $this->config,
-            $this->brixEnv->rootDir->withRelativePath(
-                $this->config->customers_dir
-            )->assertDirectory()
-        );
+
     }
 
 

@@ -2,3 +2,4 @@ version: '1.0'
 
 crm:
     customers_dir: './customers'
+    template_dir: './tpl'

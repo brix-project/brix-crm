@@ -2,10 +2,10 @@
 
 namespace Brix\CRM\Business;
 
-use Brix\CRM\Type\T_CrmConfig;
 use Brix\Core\Type\BrixEnv;
 use Brix\CRM\Type\Customer\T_CRM_Customer;
-use Lack\Invoice\Type\T_Customer;
+use Brix\CRM\Type\T_CrmConfig;
+use http\Exception\InvalidArgumentException;
 use Phore\FileSystem\PhoreDirectory;
 
 class CustomerManager
@@ -56,4 +56,28 @@ class CustomerManager
         }
         return $customers;
     }
+
+    public function selectCustomer(string $customerId) : CrmCustomerWrapper {
+        $customers = [];
+        foreach ($this->customersDir->assertDirectory()->genWalk() as $dir) {
+
+            $customerFile = $dir->withFileName("customer.yml");
+            if ( ! $customerFile->isFile())
+                continue;
+
+            $customer = $customerFile->get_yaml(T_CRM_Customer::class);
+            assert($customer instanceof T_CRM_Customer);
+
+            if ($customer->customerId !== $customerId)
+                continue;
+
+            $customers[] = $customer;
+        }
+        if (count($customers) > 1)
+            throw new InvalidArgumentException("Multiple customers found for id '$customerId'");
+        if (count($customers) === 0)
+            throw new InvalidArgumentException("No customer found for id '$customerId'");
+        return new CrmCustomerWrapper($customers[0], $this->brixEnv, $this->config, $this->customersDir->withRelativePath($customers[0]->customerId . "-" . $customers[0]->customerSlug)->assertDirectory(false));
+    }
+
 }

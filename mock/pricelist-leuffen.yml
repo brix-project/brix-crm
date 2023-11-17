@@ -1,0 +1,9 @@
+version: 1
+items:
+-
+  title: Individualprogrammierung PHP/JS
+  desc: |
+    Auftrag Wartung
+  vat: 19
+  unit_price_net: 85
+  quantity: 8.75

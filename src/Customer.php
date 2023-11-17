@@ -23,10 +23,14 @@ class Customer extends AbstractCrmBrixCommand
     {
         $cliInput = new CLIntputHandler();
 
+        $tenantId = $cliInput->askLine("Enter tenant id: ");
+        $tenant = $this->config->getTenantById($tenantId);
+
         $customerData = $cliInput->askMultiLine("Enter customer data:");
 
         $newCustomer = $this->brixEnv->getOpenAiQuickFacet()->promptDataStruct($customerData, T_CRM_Customer::class);
         assert($newCustomer instanceof T_CRM_Customer);
+        $newCustomer->tenant_id = $tenant->id;
 
         echo phore_json_encode($newCustomer, JSON_PRETTY_PRINT);
         $cliInput->askBool("Create customer?", false) || die ("Aborted.");

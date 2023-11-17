@@ -8,6 +8,7 @@ address: |-
 info: ""
 phone: ""
 customerSlug: leuffen
+tenant_id: leuffen
 assets:
 - leuffen.de
 ...

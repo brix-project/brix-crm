@@ -3,3 +3,8 @@ version: '1.0'
 crm:
     customers_dir: './customers'
     template_dir: './tpl'
+    tenants:
+        -
+            id: leuffen
+            pricelist: 'pricelist-leuffen.yml'
+            invoice_layout: 'invoice_layout-leuffen.yml'

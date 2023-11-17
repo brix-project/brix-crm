@@ -5,6 +5,7 @@ namespace Brix\CRM\Business;
 use Brix\Core\Type\BrixEnv;
 use Brix\CRM\Type\Customer\T_CRM_Customer;
 use Brix\CRM\Type\T_CrmConfig;
+use Brix\CRM\Type\T_CrmConfig_Tenant;
 use http\Exception\InvalidArgumentException;
 use Phore\FileSystem\PhoreDirectory;
 

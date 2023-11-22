@@ -3,6 +3,9 @@
 namespace Brix\CRM;
 
 use Brix\CRM\Helper\AbstractCrmBrixCommand;
+use Brix\MailSpool\MailSpoolFacet;
+use Lack\MailSpool\OutgoingMail;
+use Lack\MailSpool\OutgoingMailAttachment;
 use Phore\Cli\Input\In;
 
 class Invoice extends AbstractCrmBrixCommand
@@ -39,15 +42,31 @@ class Invoice extends AbstractCrmBrixCommand
         } while ($loop === true);
 
         if (In::AskBool("Spool invoice?", true))
-            $this->spool($cid, $invId);
+            $this->spool($cid, $invId, $file);
 
     }
 
 
-    public function spool (string $cid, string $invId) {
+    public function spool (string $cid, string $invId, string $file) {
         $customer = $this->customerManager->selectCustomer($cid);
+        $tenant = $this->config->getTenantById($customer->customer->tenant_id);
         $invoice = $customer->getInvoice($invId);
-        $customer->spoolInvoice($invoice);
+
+        $mailspool = MailSpoolFacet::getInstance();
+
+
+        $invTemplate = $this->brixEnv->rootDir->withRelativePath($tenant->invoice_email_tpl)->assertFile();
+
+
+        $mail = OutgoingMail::FromTemplate($invTemplate, [
+            "customer" => (array)$customer->customer,
+            "invoice" => (array)$invoice,
+            "tenant" => (array)$tenant
+        ]);
+        $file = phore_file($file);
+        $mail->attachments[] = new OutgoingMailAttachment($file->get_contents(), $file->getBasename());
+
+        $mailspool->spoolMail($mail);
     }
 
 

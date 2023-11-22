@@ -74,8 +74,9 @@ class CrmCustomerWrapper
             $this->customer,
             $invoice
         );
-        $iv->generate($invFile->getDirname()->withFileName($this->customer->tenant_id . "_" . $invoice->invoiceId . ".pdf"));
-        return $invFile->getUri();
+        $pdfFile = $invFile->getDirname()->withFileName("Rechnung_" . $this->customer->tenant_id . "_" . $invoice->invoiceId . ".pdf");
+        $iv->generate($pdfFile);
+        return $pdfFile->getUri();
     }
 
 }

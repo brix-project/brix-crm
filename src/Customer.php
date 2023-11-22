@@ -25,6 +25,8 @@ class Customer extends AbstractCrmBrixCommand
 
         $tenantId = $cliInput->askLine("Enter tenant id: ");
         $tenant = $this->config->getTenantById($tenantId);
+        if ($tenant === null)
+            throw new \InvalidArgumentException("Tenant with id '$tenantId' not found.");
 
         $customerData = $cliInput->askMultiLine("Enter customer data:");
 
@@ -32,10 +34,14 @@ class Customer extends AbstractCrmBrixCommand
         assert($newCustomer instanceof T_CRM_Customer);
         $newCustomer->tenant_id = $tenant->id;
 
+
         echo phore_json_encode($newCustomer, JSON_PRETTY_PRINT);
-        $cliInput->askBool("Create customer?", false) || die ("Aborted.");
+        $cliInput->askBool("Create customer?", true) || die ("Aborted.");
 
         $this->customerManager->createCustomer($newCustomer);
+
+
+
 
     }
 

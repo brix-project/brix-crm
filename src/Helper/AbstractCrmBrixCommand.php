@@ -27,7 +27,7 @@ class AbstractCrmBrixCommand extends AbstractBrixCommand
             $this->config,
             $this->brixEnv->rootDir->withRelativePath(
                 $this->config->customers_dir
-            )->assertDirectory()
+            )->assertDirectory(true)
         );
     }
 }

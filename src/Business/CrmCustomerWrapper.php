@@ -23,12 +23,20 @@ class CrmCustomerWrapper
     public function createNewInvoice() : string
     {
         $invoice = new T_CRM_Invoice();
+
+        $template = $this->customerDir->withRelativePath("invoice-tpl.yml");
+        if ($template->isFile()) {
+            $invoice = $template->assertFile()->get_yaml(T_CRM_Invoice::class);
+        }
+
         $invoice->invoiceId = "X-" . $this->brixEnv->getState("crm")->increment("invoiceId");
         $invoice->invoiceDate = date("d.m.Y");
 
+
+
         $invoiceDir = $this->customerDir->withRelativePath("inv_new")->assertDirectory(true);
         $invFile = $invoiceDir->withFileName($invoice->invoiceId . ".yml");
-        $invFile->set_yaml((array)$invoice);
+        $invFile->set_yaml(phore_dehydrate($invoice));
 
         return $invoice->invoiceId;
     }

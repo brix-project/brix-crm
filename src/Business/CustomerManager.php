@@ -18,11 +18,20 @@ class CustomerManager
 
     public function createCustomer(T_CRM_Customer $customer)
     {
-        if ($customer->customerId === null) {
+        if ($customer->customerId === null || $customer->customerId === "") {
             $customer->customerId = "K" . $this->brixEnv->getState("crm")->increment("customerId");
         }
 
+
+
         $customerDir = $this->customersDir->withRelativePath($customer->customerId . "-" . $customer->customerSlug)->assertDirectory(true);
+
+        // Check if Template with tenant exisists
+        $templateDir = $this->brixEnv->rootDir->withRelativePath($this->config->template_dir . "/". $customer->tenant_id);
+        if ($templateDir->exists()) {
+            $templateDir->assertDirectory()->copyTo($customerDir);
+        }
+
         $customerFile = $customerDir->withFileName("customer.yml")->set_yaml((array)$customer);
     }
 
@@ -75,9 +84,9 @@ class CustomerManager
             $customers[] = $customer;
         }
         if (count($customers) > 1)
-            throw new InvalidArgumentException("Multiple customers found for id '$customerId'");
+            throw new \InvalidArgumentException("Multiple customers found for id '$customerId'");
         if (count($customers) === 0)
-            throw new InvalidArgumentException("No customer found for id '$customerId'");
+            throw new \InvalidArgumentException("No customer found for id '$customerId'");
         return new CrmCustomerWrapper($customers[0], $this->brixEnv, $this->config, $this->customersDir->withRelativePath($customers[0]->customerId . "-" . $customers[0]->customerSlug)->assertDirectory(false));
     }
 

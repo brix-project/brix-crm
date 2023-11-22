@@ -9,7 +9,7 @@ items:
     title: Einmalige Einrichtung
     desc: Zeitraum {{date('d.m.Y')}} - {{date('d.m.Y', strtotime('+1 year'))}}
     vat: 19
-    unit_price_net: ~
+    unit_price_net: 123.45
     quantity: 12
 
 net_invoice: true

@@ -9,11 +9,15 @@ class Invoice extends AbstractCrmBrixCommand
 {
 
 
-    public function create(string $cid) {
+    public function create(string $cid = null) {
+        if ($cid === null)
+            $cid = In::AskLine("Create Invoice for Customer ID: ");
         $customer = $this->customerManager->selectCustomer($cid);
         $invoiceId = $customer->createNewInvoice();
         echo "\nCreated new invoice: $invoiceId\n";
 
+        if (In::AskBool("Build invoice?", true))
+            $this->build($cid, $invoiceId, true);
 
     }
 
@@ -28,11 +32,14 @@ class Invoice extends AbstractCrmBrixCommand
 
             echo "\nCreated invoice: $file\n";
             if ($loop === true) {
-                if (In::AskBool("PDF created. Quit rebuild?", false))
-                    return true;
+                if (In::AskBool("PDF created. Rebuild agein?", true) === false)
+                    break;
 
             }
-        } while ($loop === false);
+        } while ($loop === true);
+
+        if (In::AskBool("Spool invoice?", true))
+            $this->spool($cid, $invId);
 
     }
 

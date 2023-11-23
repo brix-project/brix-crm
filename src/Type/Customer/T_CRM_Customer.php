@@ -9,8 +9,9 @@ class T_CRM_Customer extends T_Customer
 
 
     /**
-     * The Saluation of the Persion (Like: "Sehr geehrte Frau Müller" or "Sehr geehrter Herr Müller") depending
-     * on Sex and including Titles like (Dr.)
+     * The Salutation of the Person in E-Mails (Like: "Sehr geehrte Frau Müller" or "Sehr geehrter Herr Müller") depending
+     * on Sex and including Titles like (Dr.). Always starts with "Sehr geehrte" or "Sehr geehrter". If not
+     * determinable, use "Sehr geehrte Damen und Herren".
      *
      * @var string
      */
@@ -30,6 +31,7 @@ class T_CRM_Customer extends T_Customer
 
     /**
      * A short name for the customer (one word - short, lowercase)
+     * Kürze Vornamen ab, z.B. "Hans-Peter Müller" -> "hp-mueller"
      *
      * @var string
      */

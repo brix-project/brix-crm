@@ -30,6 +30,13 @@ class T_CRM_Customer extends T_Customer
     public string $phone = "";
 
     /**
+     * Mobile Phone Number
+     *
+     * @var string
+     */
+    public string $mobile = "";
+
+    /**
      * A short name for the customer (one word - short, lowercase)
      * Kürze Vornamen ab, z.B. "Hans-Peter Müller" -> "hp-mueller"
      *

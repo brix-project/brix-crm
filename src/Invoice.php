@@ -66,7 +66,9 @@ class Invoice extends AbstractCrmBrixCommand
         $file = phore_file($file);
         $mail->attachments[] = new OutgoingMailAttachment($file->get_contents(), $file->getBasename());
 
-        $mailspool->spoolMail($mail);
+        $mailId = $mailspool->spoolMail($mail);
+        if (In::AskBool("Send spooled email?", true))
+            $mailspool->sendMail($mailId);
     }
 
 

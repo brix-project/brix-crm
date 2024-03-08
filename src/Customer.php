@@ -45,6 +45,13 @@ class Customer extends AbstractCrmBrixCommand
 
     }
 
+
+    public function search(array $argv) {
+        $customers = $this->customerManager->listCustomers($argv[0] ?? "*");
+        Out::Table($customers);
+    }
+
+
     public function list() {
         $customers = $this->customerManager->listCustomers();
         Out::Table($customers);

@@ -52,6 +52,8 @@ class CustomerManager
             if ($filter !== "*") {
                 $match = false;
                 foreach ($customer as $field) {
+                    if (is_array($field))
+                        $field = implode(" ", $field);
                     if (stripos($field, $filter) !== false) {
                         $match = true;
                         break;

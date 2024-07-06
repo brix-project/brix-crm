@@ -46,6 +46,12 @@ class Customer extends AbstractCrmBrixCommand
     }
 
 
+    public function fix() {
+        $this->customerManager->repairCustomers();
+        Out::TextSuccess("done");
+    }
+
+
     public function search(array $argv) {
         $customers = $this->customerManager->listCustomers($argv[0] ?? "*");
         Out::Table($customers);

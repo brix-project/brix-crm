@@ -7,6 +7,7 @@ use Brix\CRM\Type\Customer\T_CRM_Customer;
 use Brix\CRM\Type\T_CrmConfig;
 use Brix\CRM\Type\T_CrmConfig_Tenant;
 use http\Exception\InvalidArgumentException;
+use Phore\Cli\Input\In;
 use Phore\FileSystem\PhoreDirectory;
 
 class CustomerManager
@@ -35,6 +36,60 @@ class CustomerManager
         $customerFile = $customerDir->withFileName("customer.yml")->set_yaml((array)$customer);
     }
 
+
+
+    public function repairCustomers() {
+        foreach ($this->customersDir->assertDirectory()->genWalk() as $dir) {
+            $customerFile = $dir->getFilename();
+            if ( ! preg_match("/^(K[0-9]+)-(.*)$/", $customerFile, $matches)) {
+                throw new \InvalidArgumentException("cannot parse customer slug of path: '$customerFile'");
+            }
+            $customerId = $matches[1];
+            $customerSlug = $matches[2];
+
+            echo "\nChecking $customerId...";
+
+            $customerFile = $dir->withFileName("customer.yml");
+            if ( ! $customerFile->isFile())
+                continue;
+
+            try {
+                $customer = $customerFile->get_yaml(T_CRM_Customer::class);
+                if ($customer->customerId !== $customerId) {
+                    echo "Fixing customerId from '{$customer->customerId}' to '$customerId'...";
+                    $customer->customerId = $customerId;
+                    $customerFile->set_yaml((array)$customer);
+                }
+                if ($customer->customerSlug !== $customerSlug) {
+                    echo "Fixing customerSlug from '{$customer->customerSlug}' to '$customerSlug'...";
+                    $customer->customerSlug = $customerSlug;
+                    $customerFile->set_yaml((array)$customer);
+                }
+                if (empty($customer->email))
+                    echo " - email missing";
+                if (empty($customer->tenant_id))
+                    echo " - tenant_id missing";
+                echo "OK";
+            } catch (\Exception $e) {
+                echo "Error: " . $e->getMessage();
+                $customer = new T_CRM_Customer();
+                foreach ($data = $customerFile->get_yaml() as $key => $value) {
+                    $customer->$key = $value;
+                }
+
+                $customer->customerId = $customerId;
+                $customer->customerSlug = $customerSlug;
+                if (In::AskBool("Fix?", false)) {
+                    $customerFile->set_yaml((array)$customer);
+                    echo "FIXED!";
+                    continue;
+                }
+                continue;
+            }
+        }
+    }
+
+
     /**
      * @param string $filter
      * @return T_CRM_Customer[]
@@ -47,7 +102,10 @@ class CustomerManager
             if ( ! $customerFile->isFile())
                 continue;
 
+
             $customer = $customerFile->get_yaml(T_CRM_Customer::class);
+
+
 
             if ($filter !== "*") {
                 $match = false;

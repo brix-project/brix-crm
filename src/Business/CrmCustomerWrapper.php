@@ -8,6 +8,7 @@ use Brix\CRM\Type\Invoice\T_CRM_Invoice;
 use Brix\CRM\Type\T_CrmConfig;
 use Lack\Invoice\InvoiceFacet;
 use Lack\Invoice\Type\T_Layout;
+use Phore\Cli\Input\In;
 use Phore\Cli\Output\Out;
 use Phore\FileSystem\PhoreDirectory;
 
@@ -25,9 +26,10 @@ class CrmCustomerWrapper
         $invoice = new T_CRM_Invoice();
 
         $template = $this->customerDir->withRelativePath("invoice-tpl.yml");
-        if ($template->isFile()) {
-            $invoice = $template->assertFile()->get_yaml(T_CRM_Invoice::class);
+        if ( ! $template->isFile()) {
+            throw new \InvalidArgumentException("Customer has no invoice-tpl.yml");
         }
+        $invoice = $template->assertFile()->get_yaml(T_CRM_Invoice::class);
 
         $invoice->invoiceId = "X-" . $this->brixEnv->getState("crm")->increment("invoiceId");
         $invoice->invoiceDate = date("d.m.Y");

@@ -2,9 +2,10 @@
 
 namespace Brix\CRM\Actions\Types;
 
-class CustomerCreateActionRequestType
+use Brix\CRM\Type\Customer\T_CRM_Customer;
+
+class CustomerCreateActionRequestType extends T_CRM_Customer
 {
 
-    public string $name;
 
 }

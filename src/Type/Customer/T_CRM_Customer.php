@@ -10,8 +10,8 @@ class T_CRM_Customer extends T_Customer
 
     /**
      * The Salutation of the Person in E-Mails (Like: "Sehr geehrte Frau Müller" or "Sehr geehrter Herr Müller") depending
-     * on Sex and including Titles like (Dr.). Always starts with "Sehr geehrte" or "Sehr geehrter". If not
-     * determinable, use "Sehr geehrte Damen und Herren".
+     * on Sex and including Titles like (Dr.). Always starts with "Sehr geehrte" or "Sehr geehrter". If unclear
+     * use "Sehr geehrte Damen und Herren".
      *
      * @var string
      */

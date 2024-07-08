@@ -1,6 +1,12 @@
 <?php
 namespace Brix\CRM\Actions;
+use Brix\Core\Broker\Broker;
+use Brix\Core\Broker\BrokerActionInterface;
+use Brix\Core\Broker\BrokerActionResponse;
 use Brix\CRM\Actions\Types\CustomerCreateActionRequestType;
+use Brix\CRM\Business\CustomerManager;
+use Brix\CRM\Type\Customer\T_CRM_Customer;
+use Brix\CRM\Type\T_CrmConfig;
 
 class CustomerCreateAction implements BrokerActionInterface
 {
@@ -16,7 +22,7 @@ class CustomerCreateAction implements BrokerActionInterface
 
     public function getInputClass() : string
     {
-
+        return CustomerCreateActionRequestType::class;
     }
 
     public function getOutputClass() : string
@@ -29,9 +35,39 @@ class CustomerCreateAction implements BrokerActionInterface
 
     }
 
-    public function performAction(CustomerCreateActionRequestType $input) : BrokerActionResponse
-    {
 
+    public function performAction(object $input, Broker $broker): BrokerActionResponse
+    {
+        assert($input instanceof CustomerCreateActionRequestType);
+
+        $config = $broker->brixEnv->brixConfig->get(
+            "crm",
+            T_CrmConfig::class,
+            file_get_contents(__DIR__ . "/../config_tpl.yml")
+        );
+        $customerManager = new CustomerManager(
+            $broker->brixEnv,
+            $config,
+            $broker->brixEnv->rootDir->withRelativePath(
+                $config->customers_dir
+            )->assertDirectory(true)
+        );
+
+
+        $customerManager->createCustomer($input);
+        $newContextId = $input->customerId . "-" . $input->customerSlug;
+
+        $broker->contextStorageDriver->createContext($newContextId, "$input->address");
+        $ret = new BrokerActionResponse();
+        $ret->status = "ok";
+        $ret->message = "Customer created (ID: $input->customerId, Slug: $input->customerSlug, Context: $newContextId)";
+        $ret->context_updates
+
+    }
+
+    public function needsContext(): bool
+    {
+        return false;
     }
 }
 

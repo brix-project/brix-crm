@@ -65,7 +65,6 @@ class CustomerCreateAction implements BrokerActionInterface
 
         $broker->contextStorageDriver->withContext($newContextId)->processContextMsg(new ContextMsg("crm.customer_data", "The billing address of the customer. Use as main address if nothing other is specified", $input));
         $broker->contextStorageDriver->withContext($newContextId)->processContextMsg(new ContextMsg("subscription_id", "The subscription_id for this customer.", $newSubscriptionId));
-        $broker->contextStorageDriver->withContext($newContextId)->processContextMsg(new ContextMsg("domain: abcde.de", "The subscription_id for this customer.", $newSubscriptionId));
         $ret = new BrokerActionResponse();
         $ret->status = "ok";
         $ret->message = "Customer created (ID: $input->customerId, Slug: $input->customerSlug, Context: $newContextId)";

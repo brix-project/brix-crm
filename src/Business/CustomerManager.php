@@ -23,6 +23,15 @@ class CustomerManager
             $customer->customerId = "K" . $this->brixEnv->getState("crm")->increment("customerId");
         }
 
+        if ($customer->customerSlug === null || $customer->customerSlug === "") {
+            throw new \InvalidArgumentException("customerSlug must be set");
+        }
+        if ($customer->tenant_id === null || $customer->tenant_id === "") {
+            throw new \InvalidArgumentException("tenant_id must be set");
+        }
+        if ($customer->email === null || $customer->email === "") {
+            throw new \InvalidArgumentException("email must be set");
+        }
 
 
         $customerDir = $this->customersDir->withRelativePath($customer->customerId . "-" . $customer->customerSlug)->assertDirectory(true);

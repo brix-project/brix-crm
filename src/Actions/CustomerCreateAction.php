@@ -54,6 +54,8 @@ class CustomerCreateAction implements BrokerActionInterface
         );
 
 
+        $input = phore_cast_object($input, T_CRM_Customer::class);
+
         $customerManager->createCustomer($input);
         $newContextId = $input->customerId . "-" . $input->customerSlug;
 
@@ -61,8 +63,8 @@ class CustomerCreateAction implements BrokerActionInterface
         $ret = new BrokerActionResponse();
         $ret->status = "ok";
         $ret->message = "Customer created (ID: $input->customerId, Slug: $input->customerSlug, Context: $newContextId)";
-        $ret->context_updates
 
+        return $ret;
     }
 
     public function needsContext(): bool

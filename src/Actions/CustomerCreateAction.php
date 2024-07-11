@@ -37,7 +37,7 @@ class CustomerCreateAction implements BrokerActionInterface
     }
 
 
-    public function performAction(object $input, Broker $broker): BrokerActionResponse
+    public function performAction(object $input, Broker $broker, ?string $contextId): BrokerActionResponse
     {
         assert($input instanceof CustomerCreateActionRequestType);
 

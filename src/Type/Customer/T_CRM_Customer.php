@@ -45,7 +45,8 @@ class T_CRM_Customer extends T_Customer
 
     /**
      * A short name for the customer (one word - short, lowercase)
-     * Kürze Vornamen ab, z.B. "Hans-Peter Müller" -> "hp-mueller"
+     * Kürze Vornamen ab, z.B. "Hans-Peter Müller" -> "hp-mueller" or "Hans Müller" -> "h-mueller"
+     * Uebersetze Umlaute!
      *
      * @var string
      */

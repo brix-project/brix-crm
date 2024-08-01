@@ -19,9 +19,8 @@ class CustomerManager
 
     public function createCustomer(T_CRM_Customer $customer)
     {
-        if ($customer->customerId === null || $customer->customerId === "") {
-            $customer->customerId = "K" . $this->brixEnv->getState("crm")->increment("customerId");
-        }
+
+        $customer->customerId = "K" . $this->brixEnv->getState("crm")->increment("customerId");
 
         if ($customer->customerSlug === null || $customer->customerSlug === "") {
             throw new \InvalidArgumentException("customerSlug must be set");

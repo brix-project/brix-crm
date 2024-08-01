@@ -3,6 +3,7 @@ namespace Brix\CRM\Actions;
 use Brix\Core\Broker\Broker;
 use Brix\Core\Broker\BrokerActionInterface;
 use Brix\Core\Broker\BrokerActionResponse;
+use Brix\Core\Broker\Log\Logger;
 use Brix\Core\Broker\Message\ContextMsg;
 use Brix\CRM\Actions\Types\CustomerCreateActionRequestType;
 use Brix\CRM\Business\CustomerManager;
@@ -37,7 +38,7 @@ class CustomerCreateAction implements BrokerActionInterface
     }
 
 
-    public function performAction(object $input, Broker $broker, ?string $contextId): BrokerActionResponse
+    public function performAction(object $input, Broker $broker, Logger $logger, ?string $contextId): BrokerActionResponse
     {
         assert($input instanceof CustomerCreateActionRequestType);
 
@@ -61,14 +62,14 @@ class CustomerCreateAction implements BrokerActionInterface
         $newContextId = $input->customerId . "-" . strtolower($input->customerSlug);
         $newSubscriptionId = strtolower($input->customerSlug . "-" . $input->customerId);
 
-        $broker->contextStorageDriver->createContext($newContextId, "$input->address");
+        $broker->getContextStorageDriver()->createContext($newContextId, "$input->address");
+        $broker->switchContext($newContextId);
 
-        $broker->contextStorageDriver->withContext($newContextId)->processContextMsg(new ContextMsg("crm.customer_data", "The billing address of the customer. Use as main address if nothing other is specified", $input));
-        $broker->contextStorageDriver->withContext($newContextId)->processContextMsg(new ContextMsg("subscription_id", "The subscription_id for this customer.", $newSubscriptionId));
-        $ret = new BrokerActionResponse();
-        $ret->status = "ok";
-        $ret->message = "Customer created (ID: $input->customerId, Slug: $input->customerSlug, Context: $newContextId)";
 
+        $ret = new BrokerActionResponse("success",  "Customer created (ID: $input->customerId, Slug: $input->customerSlug, Context: $newContextId)");
+
+        $ret->addContextUpdate("crm.customer_data", "The billing address of the customer. Use as main address if nothing other is specified", $input);
+        $ret->addContextUpdate("subscription_id", "The subscription_id for this customer.", $newSubscriptionId);
         return $ret;
     }
 

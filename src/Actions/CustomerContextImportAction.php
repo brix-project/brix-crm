@@ -53,8 +53,9 @@ class CustomerContextImportAction extends AbstractBrixCrmAction
 
         $broker->getContextStorageDriver()->createContext($newContextId, $customer->email. " " . $customer->address);
         $broker->switchContext($newContextId);
+        $broker->selectContextId($newContextId);
 
-        $ret = new BrokerActionResponse("success",  "Customer created (ID: $customer->customerId, Slug: $customer->customerSlug, Context: $newContextId)");
+        $ret = new BrokerActionResponse("success",  "Customer created (ID: $customer->customerId, Slug: $customer->customerSlug, Context: $newContextId)", [], $newContextId);
 
         $ret->addContextUpdate("crm.customer_data", "The billing address of the customer. Use as main address if nothing other is specified", $customer);
         $ret->addContextUpdate("subscription_id", "The subscription_id for this customer.", $newSubscriptionId);

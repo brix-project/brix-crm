@@ -66,7 +66,7 @@ class CustomerCreateAction implements BrokerActionInterface
         $broker->switchContext($newContextId);
 
 
-        $ret = new BrokerActionResponse("success",  "Customer created (ID: $input->customerId, Slug: $input->customerSlug, Context: $newContextId)");
+        $ret = new BrokerActionResponse("success",  "Customer created (ID: $input->customerId, Slug: $input->customerSlug, Context: $newContextId)", [], $newContextId);
 
         $ret->addContextUpdate("crm.customer_data", "The billing address of the customer. Use as main address if nothing other is specified", $input);
         $ret->addContextUpdate("subscription_id", "The subscription_id for this customer.", $newSubscriptionId);

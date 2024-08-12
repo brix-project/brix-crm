@@ -1,5 +1,6 @@
 <?php
 namespace Brix\CRM\Actions;
+use Brix\Core\Broker\AbstractBrokerAction;
 use Brix\Core\Broker\Broker;
 use Brix\Core\Broker\BrokerActionInterface;
 use Brix\Core\Broker\BrokerActionResponse;
@@ -10,7 +11,7 @@ use Brix\CRM\Business\CustomerManager;
 use Brix\CRM\Type\Customer\T_CRM_Customer;
 use Brix\CRM\Type\T_CrmConfig;
 
-class CustomerCreateAction implements BrokerActionInterface
+class CustomerCreateAction extends AbstractBrokerAction
 {
     public function getName() : string
     {

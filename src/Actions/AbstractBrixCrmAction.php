@@ -3,13 +3,14 @@
 namespace Brix\CRM\Actions;
 
 use Brix\Core\BrixEnvFactorySingleton;
+use Brix\Core\Broker\AbstractBrokerAction;
 use Brix\Core\Broker\BrokerActionInterface;
 use Brix\Core\Type\BrixEnv;
 use Brix\CRM\Business\CustomerManager;
 use Brix\CRM\Type\T_CrmConfig;
 use tests\Http\Message\MultipartStream\FunctionTest;
 
-abstract class AbstractBrixCrmAction implements BrokerActionInterface
+abstract class AbstractBrixCrmAction extends AbstractBrokerAction
 {
 
     protected T_CrmConfig $config;

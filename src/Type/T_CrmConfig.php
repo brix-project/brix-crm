@@ -6,7 +6,7 @@ use Brix\Core\Type\BrixEnv;
 
 class T_CrmConfig
 {
-
+    public string $invoice_export_dir = "/export";
     public string $customers_dir = "./customers";
 
     public string $template_dir = "./tpl";

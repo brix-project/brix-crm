@@ -7,6 +7,7 @@ use Brix\MailSpool\MailSpoolFacet;
 use Lack\MailSpool\OutgoingMail;
 use Lack\MailSpool\OutgoingMailAttachment;
 use Phore\Cli\Input\In;
+use Phore\Cli\Output\Out;
 
 class Invoice extends AbstractCrmBrixCommand
 {
@@ -46,6 +47,26 @@ class Invoice extends AbstractCrmBrixCommand
 
     }
 
+
+    public function export_invoices() {
+        $env = $this->brixEnv;
+
+        $exportDir = phore_dir($env->rootDir)->join($this->config->invoice_export_dir)->asDirectory();
+        if ( ! is_dir($exportDir))
+            phore_dir($exportDir)->mkdir();
+
+        $customersDir = phore_dir($env->rootDir)->join($this->config->customers_dir)->asDirectory();
+        foreach ($customersDir->genWalk("*.pdf", true) as $file) {
+            if ( ! $file->isFile())
+                continue;
+            if(!preg_match ("/X-[0-9]+/", $file->getBasename())) {
+                Out::TextDanger("Skipping file: " . $file->getBasename());
+                continue;
+            }
+            Out::TextInfo("Exporting: " . $file . " to $exportDir/" . $file->getBasename());
+            $file->asFile()->copyTo($exportDir . "/" . $file->getBasename());
+        }
+    }
 
     public function spool (string $cid, string $invId, string $file) {
         $customer = $this->customerManager->selectCustomer($cid);

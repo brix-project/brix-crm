@@ -59,12 +59,18 @@ class Invoice extends AbstractCrmBrixCommand
         foreach ($customersDir->genWalk("*.pdf", true) as $file) {
             if ( ! $file->isFile())
                 continue;
-            if(!preg_match ("/X-[0-9]+/", $file->getBasename())) {
+            if(!preg_match ("/(X-[0-9]+)/", $file->getBasename(), $matches)) {
                 Out::TextDanger("Skipping file: " . $file->getBasename());
                 continue;
             }
+
+            $ymlFile = $file->getDirname()->withFileName($matches[1]. ".yml");
+            $invYear = date("Y", strtotime($ymlFile->get_yaml()["invoiceDate"]));
+
+
             Out::TextInfo("Exporting: " . $file . " to $exportDir/" . $file->getBasename());
-            $file->asFile()->copyTo($exportDir . "/" . $file->getBasename());
+            $targetDir = $exportDir->join($invYear)->assertDirectory(true);
+            $file->asFile()->copyTo($targetDir->join($file->getBasename()));
         }
     }
 

@@ -44,6 +44,13 @@ class T_CRM_Customer extends T_Customer
     public string $email = "";
 
     /**
+     * The CC E-Mail Address
+     *
+     * @var string|null
+     */
+    public ?string $cc_email = null;
+
+    /**
      * A short name for the customer (one word - short, lowercase)
      * Kürze Vornamen ab, z.B. "Hans-Peter Müller" -> "hp-mueller" or "Hans Müller" -> "h-mueller"
      * Uebersetze Umlaute!

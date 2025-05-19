@@ -7,6 +7,7 @@ use Brix\CRM\Type\Customer\T_CRM_Customer;
 use Brix\CRM\Type\Invoice\T_CRM_Invoice;
 use Brix\CRM\Type\T_CrmConfig;
 use Lack\Invoice\InvoiceFacet;
+use Lack\Invoice\OfferFacet;
 use Lack\Invoice\Type\T_Layout;
 use Phore\Cli\Input\In;
 use Phore\Cli\Output\Out;
@@ -43,6 +44,28 @@ class CrmCustomerWrapper
         return $invoice->invoiceId;
     }
 
+    public function createNewOffer() : string
+    {
+        $invoice = new T_CRM_Invoice();
+
+        $template = $this->customerDir->withRelativePath("invoice-tpl.yml");
+        if ( ! $template->isFile()) {
+            throw new \InvalidArgumentException("Customer has no invoice-tpl.yml");
+        }
+        $invoice = $template->assertFile()->get_yaml(T_CRM_Invoice::class);
+
+        $invoice->invoiceId = "O-" . $this->brixEnv->getState("crm")->increment("offerId");
+        $invoice->invoiceDate = date("d.m.Y");
+
+
+
+        $invoiceDir = $this->customerDir->withRelativePath("offers_new")->assertDirectory(true);
+        $invFile = $invoiceDir->withFileName($invoice->invoiceId . ".yml");
+        $invFile->set_yaml(phore_dehydrate($invoice));
+
+        return $invoice->invoiceId;
+    }
+
     /**
      * @return T_CRM_Invoice[]
      * @throws \Phore\FileSystem\Exception\FilesystemException
@@ -57,7 +80,11 @@ class CrmCustomerWrapper
         return $invoices;
     }
 
-
+   public function getOffer(string $offerId) : T_CRM_Invoice {
+        $invoiceDir = $this->customerDir->withRelativePath("offers_new")->assertDirectory(true);
+        $invFile = $invoiceDir->withFileName($offerId . ".yml");
+        return $invFile->get_yaml(T_CRM_Invoice::class);
+    }
 
     public function getInvoice(string $invId) : T_CRM_Invoice {
         $invoiceDir = $this->customerDir->withRelativePath("inv_new")->assertDirectory(true);
@@ -77,6 +104,23 @@ class CrmCustomerWrapper
             $invoice
         );
         $pdfFile = $invFile->getDirname()->withFileName("Rechnung_" . $this->customer->tenant_id . "_" . $invoice->invoiceId . ".pdf");
+        $iv->generate($pdfFile);
+        return $pdfFile->getUri();
+    }
+
+
+    public function buildOffer(T_CRM_Invoice $offer) : string {
+        $tentant = $this->config->getTenantById($this->customer->tenant_id);
+
+        $invoiceDir = $this->customerDir->withRelativePath("offers_new")->assertDirectory(true);
+        $invFile = $invoiceDir->withFileName($offer->invoiceId . ".yml");
+
+        $iv = new OfferFacet(
+            $this->brixEnv->rootDir->withRelativePath($tentant->invoice_layout)->assertFile()->get_yaml(T_Layout::class),
+            $this->customer,
+            $offer
+        );
+        $pdfFile = $invFile->getDirname()->withFileName("Angebot_" . $this->customer->tenant_id . "_" . $offer->invoiceId . ".pdf");
         $iv->generate($pdfFile);
         return $pdfFile->getUri();
     }

@@ -71,6 +71,7 @@ class CustomerCreateAction extends AbstractBrokerAction
 
         $ret->addContextUpdate("crm.customer_data", "The billing address of the customer. Use as main address if nothing other is specified", $input);
         $ret->addContextUpdate("subscription_id", "The subscription_id for this customer.", $newSubscriptionId);
+
         return $ret;
     }
 

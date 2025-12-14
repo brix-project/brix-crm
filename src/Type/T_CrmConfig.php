@@ -9,6 +9,8 @@ class T_CrmConfig
     public string $invoice_export_dir = "/export";
     public string $customers_dir = "./customers";
 
+    public string $overdue_table = "crm_overdue.csv";
+
     public string $template_dir = "./tpl";
 
 

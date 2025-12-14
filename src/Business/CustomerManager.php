@@ -4,6 +4,7 @@ namespace Brix\CRM\Business;
 
 use Brix\Core\Type\BrixEnv;
 use Brix\CRM\Type\Customer\T_CRM_Customer;
+use Brix\CRM\Type\Invoice\T_CRM_Invoice;
 use Brix\CRM\Type\T_CrmConfig;
 use Brix\CRM\Type\T_CrmConfig_Tenant;
 use http\Exception\InvalidArgumentException;
@@ -134,6 +135,39 @@ class CustomerManager
         }
         return $customers;
     }
+
+
+
+    public function getCustomerByInvoiceId(string $invoiceId) : CrmCustomerWrapper {
+        foreach ($this->customersDir->assertDirectory()->genWalk() as $dir) {
+
+            $customerFile = $dir->withFileName("customer.yml");
+            if ( ! $customerFile->isFile())
+                continue;
+
+            $invFile = $dir->withRelativePath("inv_new/" . $invoiceId . ".yml");
+            if ( ! $invFile->isFile())
+                continue;
+            $customer = $customerFile->get_yaml(T_CRM_Customer::class);
+
+            return new CrmCustomerWrapper($customer, $this->brixEnv, $this->config, $this->customersDir->withRelativePath($customer->customerId . "-" . $customer->customerSlug)->assertDirectory(false));
+
+        }
+        throw new \InvalidArgumentException("No customer found for invoice id '$invoiceId'");
+    }
+
+
+    public function getInvoiceById(string $invoiceId) : T_CRM_Invoice {
+        foreach ($this->customersDir->assertDirectory()->genWalk() as $dir) {
+
+            $invFile = $dir->withRelativePath("inv_new/" . $invoiceId . ".yml");
+            if ( ! $invFile->isFile())
+                continue;
+            return $invFile->get_yaml(T_CRM_Invoice::class);
+        }
+        throw new \InvalidArgumentException("No invoice found for invoice id '$invoiceId'");
+    }
+
 
     public function selectCustomer(string $customerId) : CrmCustomerWrapper {
         $customers = [];

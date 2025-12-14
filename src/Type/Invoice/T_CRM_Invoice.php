@@ -13,4 +13,15 @@ class T_CRM_Invoice extends T_Invoice
     public array $items = [];
 
 
+
+    public function getTotalAmount(): float
+    {
+        $total = 0.0;
+        foreach ($this->items as $item) {
+            $total += $item->getTotalPrice();
+        }
+        return $total;
+    }
+
+
 }

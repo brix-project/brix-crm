@@ -25,4 +25,6 @@ class T_CrmConfig_Tenant
      */
     public string $invoice_email_tpl = "tpl/invoice_email.txt";
 
+    public string $due_reminder_email_tpl = "tpl/due_email_1.txt";
+
 }

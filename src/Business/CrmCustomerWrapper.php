@@ -12,6 +12,7 @@ use Lack\Invoice\Type\T_Layout;
 use Phore\Cli\Input\In;
 use Phore\Cli\Output\Out;
 use Phore\FileSystem\PhoreDirectory;
+use Phore\FileSystem\PhoreFile;
 
 class CrmCustomerWrapper
 {
@@ -106,6 +107,13 @@ class CrmCustomerWrapper
         $pdfFile = $invFile->getDirname()->withFileName("Rechnung_" . $this->customer->tenant_id . "_" . $invoice->invoiceId . ".pdf");
         $iv->generate($pdfFile);
         return $pdfFile->getUri();
+    }
+
+
+    public function getInvoicePdfFile(string $invId) : PhoreFile {
+        $invoiceDir = $this->customerDir->withRelativePath("inv_new")->assertDirectory(false);
+        $pdfFile = $invoiceDir->withFileName("Rechnung_" . $this->customer->tenant_id . "_" . $invId . ".pdf");
+        return $pdfFile->assertFile();
     }
 
 

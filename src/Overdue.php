@@ -19,7 +19,10 @@ class Overdue extends AbstractCrmBrixCommand
 
    public function listOverdue() {
        $manager = $this->getManager();
-       Out::Table($manager->listOverdueEntries());
+       $data = $manager->listOverdueEntries();
+       Out::Table($data["data"]);
+       Out::TextInfo("Total overdue entries: " . count($data["data"]));
+       Out::TextInfo("Total overdue amount: " . $data["total"]);
    }
 
 
@@ -28,6 +31,15 @@ class Overdue extends AbstractCrmBrixCommand
 
        $manager->sendDueMail($invId);
        Out::TextSuccess("Overdue mail for invoice $invId spooled.");
+   }
+
+   public function sendAll() {
+       $manager = $this->getManager();
+
+       $manager->buildDueMails();
+       Out::TextSuccess("Total overdue mails spooled.");
+       if (In::AskBool("Send all spooled email?", true))
+           MailSpoolFacet::getInstance()->sendMail();
    }
 
 }

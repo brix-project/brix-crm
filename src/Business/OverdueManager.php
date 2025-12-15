@@ -60,7 +60,14 @@ class OverdueManager
     public function listOverdueEntries() {
         $this->updateOverdueEntries();
         $overdueTable = $this->getOverDueTable();
-        return $overdueTable->getData();
+        $total = 0.0;
+
+        foreach ($overdueTable->getData() as $overdueEntry) {
+            assert($overdueEntry instanceof OverdueTableEntity);
+            $total += $overdueEntry->totalAmount;
+        }
+
+        return ["data" =>$overdueTable->getData(), "total" => $total];
     }
 
 
@@ -85,6 +92,7 @@ class OverdueManager
         $mail = OutgoingMail::FromTemplate($mailTemplate, [
             "invoice" => (array)$overdueEntry,
             "customer" => (array)$customerWrapper->customer,
+            "amount" => number_format($overdueEntry->totalAmount, 2, ",", "."),
         ]);
         $file = $customerWrapper->getInvoicePdfFile($invoice->invoiceId);
         $mail->attachments[] = new OutgoingMailAttachment($file->get_contents(), $file->getBasename());
@@ -104,6 +112,10 @@ class OverdueManager
         foreach ($overdueTable->getData() as $overdueEntry) {
             assert($overdueEntry instanceof OverdueTableEntity);
 
+            if ($overdueEntry->isPaid === true) {
+                Out::TextInfo("Skipping invoice " . $overdueEntry->invoiceId . ": already paid." );
+                continue;
+            }
 
             try {
                 $this->sendDueMail($overdueEntry->invoiceId);
@@ -112,6 +124,7 @@ class OverdueManager
                 Out::TextDanger("Skipping invoice " . $overdueEntry->invoiceId . ": " . $e->getMessage() );
             }
         }
+
 
     }
 

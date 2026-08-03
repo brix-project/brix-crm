@@ -13,12 +13,25 @@ class Invoice extends AbstractCrmBrixCommand
 {
 
 
-    public function create(string $cid = null) {
+    public function create(string $cid = null, string $previousInvoiceId = null) {
         if ($cid === null)
             $cid = In::AskLine("Create Invoice for Customer ID: ");
         $customer = $this->customerManager->selectCustomer($cid);
-        $invoiceId = $customer->createNewInvoice();
-        echo "\nCreated new invoice: $invoiceId\n";
+
+        if ($previousInvoiceId === null)
+            $previousInvoiceId = In::AskLine("Previous invoice ID for recurring follow-up invoice (leave empty to create a normal invoice): ");
+
+        if (trim($previousInvoiceId) !== "") {
+            [$invoiceId, $previousInvoice, $invoice] = $customer->createFollowUpInvoice($previousInvoiceId);
+            echo "\nCreated follow-up invoice: $invoiceId from $previousInvoiceId\n";
+            echo "\nOld invoice items:\n";
+            Out::Table($previousInvoice->items, false, ["title", "desc", "vat", "unit_price_net", "quantity"]);
+            echo "\nNew invoice items:\n";
+            Out::Table($invoice->items, false, ["title", "desc", "vat", "unit_price_net", "quantity"]);
+        } else {
+            $invoiceId = $customer->createNewInvoice();
+            echo "\nCreated new invoice: $invoiceId\n";
+        }
 
         if (In::AskBool("Build invoice?", true))
             $this->build($cid, $invoiceId, true);

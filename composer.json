@@ -16,7 +16,8 @@
         "brixlab/core": "dev-main",
         "brixlab/mailspool": "dev-main",
         "lack/invoice": "dev-main",
-        "lack/openai": "dev-main"
+        "lack/openai": "dev-main",
+        "phore/ai-harness": "dev-main"
     },
 
     "require-dev": {

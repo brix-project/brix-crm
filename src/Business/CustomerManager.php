@@ -9,6 +9,7 @@ use Brix\CRM\Type\T_CrmConfig;
 use Brix\CRM\Type\T_CrmConfig_Tenant;
 use http\Exception\InvalidArgumentException;
 use Phore\Cli\Input\In;
+use Phore\Cli\Output\Out;
 use Phore\FileSystem\PhoreDirectory;
 
 class CustomerManager
@@ -190,6 +191,70 @@ class CustomerManager
         if (count($customers) === 0)
             throw new \InvalidArgumentException("No customer found for id '$customerId'");
         return new CrmCustomerWrapper($customers[0], $this->brixEnv, $this->config, $this->customersDir->withRelativePath($customers[0]->customerId . "-" . $customers[0]->customerSlug)->assertDirectory(false));
+    }
+
+    public function selectCustomerLazy(string $query, bool $confirmSingleMatch = true) : CrmCustomerWrapper {
+        $query = trim($query);
+        if ($query === "")
+            throw new \InvalidArgumentException("Customer search must not be empty");
+
+        $queryLower = strtolower($query);
+        $normalizedQuery = preg_match("/^\\d+$/", $query) ? "k" . $queryLower : $queryLower;
+        $exactMatches = [];
+        $lazyMatches = [];
+
+        foreach ($this->customersDir->assertDirectory()->genWalk() as $dir) {
+
+            $customerFile = $dir->withFileName("customer.yml");
+            if ( ! $customerFile->isFile())
+                continue;
+
+            $customer = $customerFile->get_yaml(T_CRM_Customer::class);
+            assert($customer instanceof T_CRM_Customer);
+
+            $customerIdLower = strtolower((string)$customer->customerId);
+            $customerSlugLower = strtolower($customer->customerSlug);
+
+            if ($customerIdLower === $queryLower || $customerIdLower === $normalizedQuery || $customerSlugLower === $queryLower) {
+                $exactMatches[] = $customer;
+                continue;
+            }
+
+            $haystack = [
+                (string)$customer->customerId,
+                $customer->customerSlug,
+                $customer->email,
+                $customer->address,
+                $customer->info,
+                implode(" ", $customer->assets),
+            ];
+
+            foreach ($haystack as $field) {
+                if (stripos($field, $query) !== false) {
+                    $lazyMatches[] = $customer;
+                    break;
+                }
+            }
+        }
+
+        $customers = count($exactMatches) > 0 ? $exactMatches : $lazyMatches;
+
+        if (count($customers) === 0)
+            throw new \InvalidArgumentException("No customer found for search '$query'");
+
+        if (count($customers) > 1) {
+            Out::Table($customers, false, ["customerId", "customerSlug", "email", "address"]);
+            $customerId = In::AskLine("Mehrere Treffer. Kundennummer aus Tabelle eingeben (leer = abbrechen): ");
+            if (trim($customerId) === "")
+                throw new \InvalidArgumentException("Customer selection aborted");
+            return $this->selectCustomerLazy($customerId, $confirmSingleMatch);
+        }
+
+        $customer = $customers[0];
+        if ($confirmSingleMatch && ! In::AskBool("Rechnung fuer Kunde {$customer->customerId} ({$customer->customerSlug}) erstellen?", true))
+            throw new \InvalidArgumentException("Customer selection aborted");
+
+        return new CrmCustomerWrapper($customer, $this->brixEnv, $this->config, $this->customersDir->withRelativePath($customer->customerId . "-" . $customer->customerSlug)->assertDirectory(false));
     }
 
 }

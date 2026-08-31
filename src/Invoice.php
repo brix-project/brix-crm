@@ -13,25 +13,46 @@ class Invoice extends AbstractCrmBrixCommand
 {
 
 
-    public function create(string $cid = null, string $previousInvoiceId = null) {
-        if ($cid === null)
-            $cid = In::AskLine("Create Invoice for Customer ID: ");
-        $customer = $this->customerManager->selectCustomer($cid);
+    public function create(array $argv = [], string $cid = null, string $previousInvoiceId = null) {
+        if ($cid === null && count($argv) > 0) {
+            if ($previousInvoiceId === null && count($argv) > 1 && preg_match('/^X-\d+$/i', end($argv))) {
+                $previousInvoiceId = array_pop($argv);
+            }
+            $cid = trim(implode(" ", $argv));
+        }
+        if ($cid === null || trim($cid) === "")
+            $cid = In::AskLine("Kundennummer: ");
+        $customer = $this->customerManager->selectCustomerLazy($cid);
+        $cid = $customer->customer->customerId;
 
-        if ($previousInvoiceId === null)
-            $previousInvoiceId = In::AskLine("Previous invoice ID for recurring follow-up invoice (leave empty to create a normal invoice): ");
-
-        if (trim($previousInvoiceId) !== "") {
+        if ($previousInvoiceId !== null && trim($previousInvoiceId) !== "") {
             [$invoiceId, $previousInvoice, $invoice] = $customer->createFollowUpInvoice($previousInvoiceId);
             echo "\nCreated follow-up invoice: $invoiceId from $previousInvoiceId\n";
             echo "\nOld invoice items:\n";
             Out::Table($previousInvoice->items, false, ["title", "desc", "vat", "unit_price_net", "quantity"]);
-            echo "\nNew invoice items:\n";
-            Out::Table($invoice->items, false, ["title", "desc", "vat", "unit_price_net", "quantity"]);
         } else {
-            $invoiceId = $customer->createNewInvoice();
-            echo "\nCreated new invoice: $invoiceId\n";
+            $instruction = In::AskLine("Was soll gemacht werden? (leer = Standardangebot unveraendert uebernehmen): ");
+            if (trim($instruction) !== "") {
+                [$invoiceId, $templateInvoice, $invoice] = $customer->createAiInvoiceFromTemplate($instruction);
+                echo "\nCreated AI adjusted invoice from standard offer/template: $invoiceId\n";
+                echo "\nTemplate items:\n";
+                Out::Table($templateInvoice->items, false, ["title", "desc", "vat", "unit_price_net", "quantity"]);
+            } else {
+                $invoiceId = $customer->createNewInvoice();
+                $invoice = $customer->getInvoice($invoiceId);
+                echo "\nCreated new invoice: $invoiceId\n";
+            }
         }
+
+        do {
+            echo "\nAktuelle Rechnungsposten:\n";
+            Out::Table($invoice->items, false, ["title", "desc", "vat", "unit_price_net", "quantity"]);
+            $revisionInstruction = In::AskLine("Noch Aenderungen? (leer = alles OK): ");
+            if (trim($revisionInstruction) === "")
+                break;
+            $invoice = $customer->reviseInvoiceItems($invoice, $revisionInstruction);
+            echo "\nRechnungsposten ueberarbeitet.\n";
+        } while (true);
 
         if (In::AskBool("Build invoice?", true))
             $this->build($cid, $invoiceId, true);

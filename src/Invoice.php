@@ -15,9 +15,6 @@ class Invoice extends AbstractCrmBrixCommand
 
     public function create(array $argv = [], string $cid = null, string $previousInvoiceId = null) {
         if ($cid === null && count($argv) > 0) {
-            if ($previousInvoiceId === null && count($argv) > 1 && preg_match('/^X-\d+$/i', end($argv))) {
-                $previousInvoiceId = array_pop($argv);
-            }
             $cid = trim(implode(" ", $argv));
         }
         if ($cid === null || trim($cid) === "")
@@ -25,7 +22,10 @@ class Invoice extends AbstractCrmBrixCommand
         $customer = $this->customerManager->selectCustomerLazy($cid);
         $cid = $customer->customer->customerId;
 
-        if ($previousInvoiceId !== null && trim($previousInvoiceId) !== "") {
+        if ($previousInvoiceId === null)
+            $previousInvoiceId = In::AskLine("Vorgaengerrechnung fuer Folgerechnung (leer = neue Rechnung aus Vorlage): ");
+
+        if (trim($previousInvoiceId) !== "") {
             [$invoiceId, $previousInvoice, $invoice] = $customer->createFollowUpInvoice($previousInvoiceId);
             echo "\nCreated follow-up invoice: $invoiceId from $previousInvoiceId\n";
             echo "\nOld invoice items:\n";

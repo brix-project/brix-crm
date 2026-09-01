@@ -159,12 +159,12 @@ class AiInvoiceCreator
 
     public function getDraftFile(): PhoreFile
     {
-        return $this->getDraftDirectory()->withFileName($this->customer->customerId . "-vorlage.json");
+        return $this->getDraftDirectory()->withFileName("invoice.json");
     }
 
     public function getPreviewPdfFile(): PhoreFile
     {
-        return $this->getDraftDirectory()->withFileName($this->customer->customerId . "-vorlage.pdf");
+        return $this->getDraftDirectory()->withFileName("invoice.pdf");
     }
 
     private function writeDraft(T_CRM_Invoice $invoice): T_CRM_Invoice

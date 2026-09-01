@@ -56,7 +56,7 @@ class Invoice extends AbstractCrmBrixCommand
             Out::Table($invoice->items, false, ["title", "desc", "vat", "unit_price_net", "quantity"], $invoiceColumnRenderers);
             Out::TextInfo("Remarks der letzten Version:\n" . $formatOptionalText($invoice->notice));
             Out::TextInfo("Attachment der letzten Version:\n" . $formatOptionalText($invoice->attachment));
-            $revisionInstruction = trim(In::AskLine("Anpassung eingeben (leer = OK, reset = Ausgangszustand): "));
+            $revisionInstruction = trim(In::AskMultiLine("Anpassung eingeben (Enter = OK, Shift+Enter/Ctrl+J = neue Zeile, leer = OK, reset = Ausgangszustand)"));
             if ($revisionInstruction === "")
                 break;
             if (in_array(strtolower($revisionInstruction), ["reset", "zuruecksetzen", "zurücksetzen"], true)) {

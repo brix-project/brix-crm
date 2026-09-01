@@ -23,36 +23,54 @@ class Invoice extends AbstractCrmBrixCommand
         $cid = $customer->customer->customerId;
 
         if ($previousInvoiceId === null)
-            $previousInvoiceId = In::AskLine("Vorgaengerrechnung fuer Folgerechnung (leer = neue Rechnung aus Vorlage): ");
+            $previousInvoiceId = In::AskLine("Vorgaengerrechnung fuer Folgerechnung (leer = Rechnungsvorlage): ");
+
+        $originalInvoice = trim($previousInvoiceId) === ""
+            ? $customer->getInvoiceTemplate()
+            : $customer->getInvoice($previousInvoiceId);
+        $invoiceCreator = $customer->createAiInvoiceCreator($originalInvoice);
+        $invoice = $invoiceCreator->createDraft();
+        $invoiceColumnRenderers = [
+            "quantity" => static fn(mixed $value, array $row): string => (string) round((float)$value),
+        ];
+        $formatOptionalText = static fn(?string $text): string => $text === null || trim($text) === ""
+            ? "(leer)"
+            : $text;
 
         if (trim($previousInvoiceId) !== "") {
-            [$invoiceId, $previousInvoice, $invoice] = $customer->createFollowUpInvoice($previousInvoiceId);
-            echo "\nCreated follow-up invoice: $invoiceId from $previousInvoiceId\n";
-            echo "\nOld invoice items:\n";
-            Out::Table($previousInvoice->items, false, ["title", "desc", "vat", "unit_price_net", "quantity"]);
-        } else {
-            $instruction = In::AskLine("Was soll gemacht werden? (leer = Standardangebot unveraendert uebernehmen): ");
-            if (trim($instruction) !== "") {
-                [$invoiceId, $templateInvoice, $invoice] = $customer->createAiInvoiceFromTemplate($instruction);
-                echo "\nCreated AI adjusted invoice from standard offer/template: $invoiceId\n";
-                echo "\nTemplate items:\n";
-                Out::Table($templateInvoice->items, false, ["title", "desc", "vat", "unit_price_net", "quantity"]);
-            } else {
-                $invoiceId = $customer->createNewInvoice();
-                $invoice = $customer->getInvoice($invoiceId);
-                echo "\nCreated new invoice: $invoiceId\n";
-            }
+            Out::TextInfo("Überarbeitung ist im Gang …");
+            $invoice = $invoiceCreator->revise(null);
         }
 
+        Out::TextSuccess("Rechnungsentwurf ohne Rechnungsnummer angelegt.");
+        Out::TextInfo("JSON: " . $invoiceCreator->getDraftFile()->getUri());
+        Out::TextInfo("PDF: " . $invoiceCreator->getPreviewPdfFile()->getUri());
+
         do {
-            echo "\nAktuelle Rechnungsposten:\n";
-            Out::Table($invoice->items, false, ["title", "desc", "vat", "unit_price_net", "quantity"]);
-            $revisionInstruction = In::AskLine("Noch Aenderungen? (leer = alles OK): ");
-            if (trim($revisionInstruction) === "")
+            Out::TextInfo("Rechnungsposten der originalen Version:");
+            Out::Table($originalInvoice->items, false, ["title", "desc", "vat", "unit_price_net", "quantity"], $invoiceColumnRenderers);
+            Out::TextInfo("Remarks der originalen Version:\n" . $formatOptionalText($originalInvoice->notice));
+            Out::TextInfo("Attachment der originalen Version:\n" . $formatOptionalText($originalInvoice->attachment));
+
+            Out::TextInfo("Rechnungsposten der überarbeiteten Version:");
+            Out::Table($invoice->items, false, ["title", "desc", "vat", "unit_price_net", "quantity"], $invoiceColumnRenderers);
+            Out::TextInfo("Remarks der letzten Version:\n" . $formatOptionalText($invoice->notice));
+            Out::TextInfo("Attachment der letzten Version:\n" . $formatOptionalText($invoice->attachment));
+            $revisionInstruction = trim(In::AskLine("Anpassung eingeben (leer = OK, reset = Ausgangszustand): "));
+            if ($revisionInstruction === "")
                 break;
-            $invoice = $customer->reviseInvoiceItems($invoice, $revisionInstruction);
-            echo "\nRechnungsposten ueberarbeitet.\n";
+            if (in_array(strtolower($revisionInstruction), ["reset", "zuruecksetzen", "zurücksetzen"], true)) {
+                $invoice = $invoiceCreator->reset();
+                Out::TextWarning("Rechnungsentwurf zurückgesetzt.");
+                continue;
+            }
+            Out::TextInfo("Überarbeitung ist im Gang …");
+            $invoice = $invoiceCreator->revise($revisionInstruction);
+            Out::TextSuccess("Rechnungsentwurf und PDF überarbeitet.");
         } while (true);
+
+        $invoiceId = $invoiceCreator->commit();
+        Out::TextSuccess("Rechnung im Kunden angelegt: $invoiceId");
 
         if (In::AskBool("Build invoice?", true))
             $this->build($cid, $invoiceId, true);
@@ -68,7 +86,7 @@ class Invoice extends AbstractCrmBrixCommand
 
             $file = $customer->buildInvoice($invoice);
 
-            echo "\nCreated invoice: $file\n";
+            Out::TextSuccess("Created invoice: $file");
             if ($loop === true) {
                 if (In::AskBool("PDF created. Rebuild agein?", true) === false)
                     break;

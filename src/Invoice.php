@@ -43,7 +43,7 @@ class Invoice extends AbstractCrmBrixCommand
         }
 
         Out::TextSuccess("Rechnungsentwurf ohne Rechnungsnummer angelegt.");
-        Out::TextInfo("JSON: " . $invoiceCreator->getDraftFile()->getUri());
+        Out::TextInfo("YAML: " . $invoiceCreator->getDraftFile()->getUri());
         Out::TextInfo("PDF: " . $invoiceCreator->getPreviewPdfFile()->getUri());
 
         do {
@@ -56,9 +56,14 @@ class Invoice extends AbstractCrmBrixCommand
             Out::Table($invoice->items, false, ["title", "desc", "vat", "unit_price_net", "quantity"], $invoiceColumnRenderers);
             Out::TextInfo("Remarks der letzten Version:\n" . $formatOptionalText($invoice->notice));
             Out::TextInfo("Attachment der letzten Version:\n" . $formatOptionalText($invoice->attachment));
-            $revisionInstruction = trim(In::AskMultiLine("Anpassung eingeben (Enter = OK, Shift+Enter/Ctrl+J = neue Zeile, leer = OK, reset = Ausgangszustand)"));
+            $revisionInstruction = trim(In::AskMultiLine("Anpassung eingeben (Enter = OK, Shift+Enter/Ctrl+J = neue Zeile, leer = OK, reload = YAML neu laden, reset = Ausgangszustand)"));
             if ($revisionInstruction === "")
                 break;
+            if (in_array(strtolower($revisionInstruction), ["reload", "neu laden", "neuladen"], true)) {
+                $invoice = $invoiceCreator->reload();
+                Out::TextSuccess("Rechnungsentwurf aus YAML neu geladen und PDF aktualisiert.");
+                continue;
+            }
             if (in_array(strtolower($revisionInstruction), ["reset", "zuruecksetzen", "zurücksetzen"], true)) {
                 $invoice = $invoiceCreator->reset();
                 Out::TextWarning("Rechnungsentwurf zurückgesetzt.");

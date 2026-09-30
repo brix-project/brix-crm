@@ -26,7 +26,6 @@ use Phore\FileSystem\PhoreFile;
 class AiInvoiceCreator
 {
     private T_CRM_Invoice $initialInvoice;
-    private ?T_CRM_Invoice $previousDraft = null;
 
     public function __construct(
         private readonly T_CRM_Invoice $originalInvoice,
@@ -46,13 +45,12 @@ class AiInvoiceCreator
      */
     public function createDraft(): T_CRM_Invoice
     {
-        $this->previousDraft = null;
         return $this->writeDraft(clone $this->initialInvoice);
     }
 
     public function getDraft(): T_CRM_Invoice
     {
-        $draft = $this->getDraftFile()->assertFile()->get_json(T_CRM_Invoice::class);
+        $draft = $this->getDraftFile()->assertFile()->get_yaml(T_CRM_Invoice::class);
         if (!$draft instanceof T_CRM_Invoice) {
             throw new \RuntimeException("Invalid invoice draft");
         }
@@ -77,7 +75,7 @@ class AiInvoiceCreator
         }
         Out::TextInfo("Lese Skill-Datei " . $invoiceSkillFile->getUri() . " als Basis für die Änderungen ein.");
 
-        $currentDraft = $this->previousDraft;
+        $currentDraft = $this->getDraft();
         $prompts = [
             // Bei jedem Lauf gesetzt: Legt fest, welche Quelle beim ersten bzw. bei späteren Läufen die Basis ist.
             new SystemPrompt("Create the revised invoice items. If currentInvoiceDraft contains an invoice, use it as the base from the previous run. If currentInvoiceDraft is empty, this is the first run: create a follow-up invoice from originalInvoice and use customerInvoiceTemplate as the template. Apply userRevisionInstruction when it is provided. Always follow invoiceSkill. Do not change invoiceId or invoiceDate."),
@@ -123,7 +121,6 @@ class AiInvoiceCreator
         }
 
         $draft = $this->writeDraft($draft);
-        $this->previousDraft = clone $draft;
 
         Out::TextSuccess("Überarbeitete Rechnungsposten:");
         Out::Table($draft->items, false, ["title", "desc", "vat", "unit_price_net", "quantity"], $columnRenderers);
@@ -137,8 +134,15 @@ class AiInvoiceCreator
      */
     public function reset(): T_CRM_Invoice
     {
-        $this->previousDraft = null;
         return $this->writeDraft(clone $this->initialInvoice);
+    }
+
+    /**
+     * Reloads the manually editable YAML draft and regenerates its preview.
+     */
+    public function reload(): T_CRM_Invoice
+    {
+        return $this->writeDraft($this->getDraft());
     }
 
     /**
@@ -159,7 +163,7 @@ class AiInvoiceCreator
 
     public function getDraftFile(): PhoreFile
     {
-        return $this->getDraftDirectory()->withFileName("invoice.json");
+        return $this->getDraftDirectory()->withFileName("invoice.yml");
     }
 
     public function getPreviewPdfFile(): PhoreFile
@@ -170,7 +174,7 @@ class AiInvoiceCreator
     private function writeDraft(T_CRM_Invoice $invoice): T_CRM_Invoice
     {
         $invoice->invoiceId = "";
-        $this->getDraftFile()->set_json(phore_dehydrate($invoice), true);
+        $this->getDraftFile()->set_yaml(phore_dehydrate($invoice));
 
         $tenant = $this->config->getTenantById($this->customer->tenant_id);
         $layout = $this->brixEnv->rootDir
